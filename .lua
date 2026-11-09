@@ -25,7 +25,7 @@ do
     local part = Instance.new("Part")
     part.Name = "antiFreeFall"
     part.Size = Vector3.new(6, 1, 6)
-    part.Position = Vector3.new(0, 99996.85, 0)
+    part.Position = Vector3.new(0, 995.85, 0)
     part.Anchored = true
     part.CanCollide = true
     part.Transparency = 0.2
@@ -54,6 +54,7 @@ local config = {
     collapsed = false, farmEnabled = false, coinAura = false,
     avoidMurderer = false, safeMethod = false,
     speed = 20, delay = 0.5, coinAuraRadius = 5, avoidRadius = 30,
+    safeTiltAngle = 90,
     optimizeGame = false, render3d = true, capFps = false, fpsValue = 240,
     antiAfk = false, antiFling = false, antiVoid = false,
     disableSfx = false, disableGuiAnimations = false,
@@ -63,7 +64,7 @@ local config = {
 
 local CONFIG_FIELDS = {
     "farmEnabled","coinAura","avoidMurderer","safeMethod","speed","delay",
-    "coinAuraRadius","avoidRadius","optimizeGame","render3d","capFps","fpsValue",
+    "coinAuraRadius","avoidRadius","safeTiltAngle","optimizeGame","render3d","capFps","fpsValue",
     "antiAfk","antiFling","antiVoid","disableSfx","disableGuiAnimations",
     "autoKillAll","autoShootMurd","autoHero",
 }
@@ -156,11 +157,11 @@ local revealTweens = {}
 local sectionHeaders = {}
 
 local StuckTime = 0.5
-local PreRoundPos = Vector3.new(0, 100000, 0)
+local PreRoundPos = Vector3.new(0, 999, 0)
 local FARM_DIRECTION = Vector3.new(0, 0, -1)
 local RETARGET_MIN_DIST = 0
 local MURDERER_AVOID_RADIUS_Y = 20
-local SAFE_TILT = CFrame.Angles(math.rad(90), 0, 0)
+local SAFE_TILT = CFrame.Angles(-math.rad(config.safeTiltAngle), 0, 0)
 
 local DefaultGravity = workspace.Gravity
 local FarmPlatform = nil
@@ -972,6 +973,14 @@ local function grabGun(drop)
         task.wait()
         firetouchinterest(hrp, drop, 1)
     end)
+    task.wait(0.05)
+    local hum = char and char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        local gun = getEquippedGun()
+        if gun and gun.Parent ~= char then
+            pcall(function() hum:EquipTool(gun) end)
+        end
+    end
 end
 
 local gunListenerConn = nil
@@ -1713,6 +1722,12 @@ createNumberInput("↑ Avoid Radius", 9, config.avoidRadius, 10, 50, function(v)
 createNumberInput("Speed", 10, config.speed, 10, 50, function(v) config.speed = v saveConfigs() end)
 createNumberInput("Delay", 11, config.delay, 0, 5, function(v) config.delay = v saveConfigs() end)
 createNumberInput("Coin Aura Radius", 12, config.coinAuraRadius, 0, 8, function(v) config.coinAuraRadius = v saveConfigs() end)
+
+createNumberInput("Tilt", 12.2, config.safeTiltAngle, 0, 180, function(v)
+    config.safeTiltAngle = v
+    SAFE_TILT = CFrame.Angles(-math.rad(v), 0, 0)
+    saveConfigs()
+end)
 
 createSectionHeader("Combat", 12.5)
 
